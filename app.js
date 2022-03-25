@@ -36,11 +36,11 @@ var players_count  = 0;
 var sv_header;
 var sv_nav;
 
-con.query("SELECT * FROM camnotes.Teams where id=3;", function (err, result, fields) {
-  if (err) throw err;
-  url_base = result[0]['domain_base'];
-  sport = result[0]['sport'];
-});
+// con.query("SELECT * FROM camnotes.Teams where id=3;", function (err, result, fields) {
+//   if (err) throw err;
+//   url_base = result[0]['domain_base'];
+//   sport = result[0]['sport'];
+// });
 
 
 // HTML Assets
@@ -77,6 +77,13 @@ default_headshots_html = `
   <body>
 `;
 
+dropdown_head = `<div class="dropdown">
+<button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Select Sport:
+<span class="caret"></span></button>
+<div class="dropdown-menu">`;
+dropdown_tail = '</div></div>'
+
+
 
 // Express Server
 const app = express();
@@ -84,10 +91,27 @@ app.use(cors({origin: '*'}));
 // app.use(bodyParser.json());
 app.use(bodyParser.json({limit: '150mb'}));
 
+
+// Home Page
+var team_names;
+var team_ids;
 app.get('/', function(req, res) {
   fs.readFile('./index.htmlx', function(err, data) {
-    res.write(sv_header+sv_nav+data);
-    res.end();
+    team_names = [];
+    team_ids = [];
+    con.query("SELECT * FROM camnotes.Sports;", function (err, result, fields) {
+      if (err) throw err;
+      var text = '';
+
+      for(var i=0; i<result.length; i++) {
+        team_names.push(result[i]['name']);
+        team_ids.push(result[i]['id']);
+        text += ' <a class="dropdown-item" href="#">' + result[i]['name'] + '</a>';
+      }
+
+      res.end(sv_header+sv_nav+dropdown_head+text+dropdown_tail);
+    });
+    
   });
 });
 
@@ -133,7 +157,7 @@ app.post('/send_raw_roster', function (req, res) {
     var newpath = '/www/jschulz.dev/headshots/sites/' + time + '.txt';
     fs.rename(oldpath, newpath, function (err) {
       if (err) throw err;
-      res.end('<html><h3>File uploaded and moved!</h3></html>');
+      res.end('<html><h3>File uploaded and moved!</h3><a href="/admin" role="button"><button type="button" class="btn">Back to Admin Page</button></a></html>');
       // res.end('<html><meta http-equiv="Refresh" content="0; url=http://cams.schulzvideo.com/admin"/>');
 
     });
@@ -147,6 +171,7 @@ app.get('/admin', function (req, res) {
     res.end(sv_header+sv_nav+data);
   });
 });
+
 
 
 // FULL data re-grab
