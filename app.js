@@ -1,19 +1,21 @@
 // Requires
 const http = require('http');
-// const url = require('url'); //parse url params
 const fs = require('fs'); //file system
 const mysql = require('mysql');
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+var formidable = require('formidable');
 
 const sl = require('./scrape_learfield');
 const { resourceLimits } = require('worker_threads');
 const { join } = require('path');
 
+
 // Parameters
 const hostname = '0.0.0.0';
 const port = 3030;
+
 
 // MySQL
 var con = mysql.createConnection({
@@ -31,10 +33,25 @@ var url_base;
 var sport;
 var players_count  = 0;
 
+var sv_header;
+var sv_nav;
+
 con.query("SELECT * FROM camnotes.Teams where id=3;", function (err, result, fields) {
   if (err) throw err;
   url_base = result[0]['domain_base'];
   sport = result[0]['sport'];
+});
+
+
+// HTML Assets
+fs.readFile('./sv_header.htmlx', function(err, data) {
+  sv_header = data;
+  console.log('read sv_header');
+});
+
+fs.readFile('./sv_nav.htmlx', function(err, data) {
+  sv_nav = data;
+  console.log('read sv_nav');
 });
 
 
@@ -67,7 +84,13 @@ app.use(cors({origin: '*'}));
 // app.use(bodyParser.json());
 app.use(bodyParser.json({limit: '150mb'}));
 
- 
+app.get('/', function(req, res) {
+  fs.readFile('./index.htmlx', function(err, data) {
+    res.write(sv_header+sv_nav+data);
+    res.end();
+  });
+});
+
 
 // Display printable headshots
 app.get('/headshots', function(req, res) {
@@ -98,39 +121,47 @@ app.get('/redo_data', function (req, res) {
 
 
 // FULL data re-grab
-app.post('/send_iframe', function (req, res) {
+app.post('/send_raw_roster', function (req, res) {
   console.log('RECEIVED POST REQ')
-  console.log(req.body);
-  console.log(req.params);
-  // fs.writeFile('./roster_test.html', req, () => {
-  //   console.log('Done wiping headshots.html')
-  // });
-  res.end();
+  // console.log(req.body);
+  // console.log(req.params);
+  var form = new formidable.IncomingForm();
+  form.parse(req, function (err, fields, files) {
+    console.log(files)
+    var oldpath = files.filetoupload.filepath;
+    var time = new Date().getTime().toString();
+    var newpath = '/www/jschulz.dev/headshots/sites/' + time + '.txt';
+    fs.rename(oldpath, newpath, function (err) {
+      if (err) throw err;
+      res.end('<html><h3>File uploaded and moved!</h3></html>');
+      // res.end('<html><meta http-equiv="Refresh" content="0; url=http://cams.schulzvideo.com/admin"/>');
+
+    });
+  });
+});
+
+
+// Admin page
+app.get('/admin', function (req, res) {
+  fs.readFile('./admin.htmlx', function(err, data) {
+    res.end(sv_header+sv_nav+data);
+  });
 });
 
 
 // FULL data re-grab
-app.get('/admin', function (req, res) {
-  text1 = `<script type="text/javascript" src="https://code.jquery.com/jquery-1.7.1.min.js"></script>
-    <script>function send_iframe_data(){ 
-    console.log("doing the ajax");
-    var html_text = $('#learfield_window')[0];
-    var empty;
-    html_text.contentWindow.postMessage(empty, '*');
-    var payload = html_text.contentWindow.document.slice(0,40);
-    // console.log(html_text.contentWindow.document);
-    $.ajax({
-      type: 'POST',
-      url: 'http://cams.schulzvideo.com/send_iframe',
-      dataType: "json",
-      data: '{"test_data":"'+payload+'"}',
-      contentType: "application/json"
-    });
-    //$.post('http://cams.schulzvideo.com/send_iframe', {test_data:"test_value"});
-  }</script>`
-  text2 = '<button class="btn" onclick="send_iframe_data()">SEND IFRAME DATA</button><iframe id="learfield_window" style="width:100%; height:100%" src="https://gozags.com/sports/baseball/roster"/>'
+app.get('/admin/upload_roster', function (req, res) {
 
-  res.end(text1+text2);
+  text = `<html>
+    <form action="http://cams.schulzvideo.com/send_raw_roster" enctype="multipart/form-data" method="POST">
+    <input type="file" class="admin__input" name="filetoupload" />
+    <input class="admin__submit" type="submit" />
+  </form>
+  `
+
+  res.end(text);
+
+  // res.end(text3);
 
   // fs.readFile('./index.html', function(err, data) {
   //   var sl_obj = new sl.Scrape_Learfield(done_scraping);
@@ -144,8 +175,9 @@ app.get('/admin', function (req, res) {
 
 // Express listen
 app.listen(port, function() {
-  console.log(`Example app listening on port ${port}!`)
+  console.log(`SVJSHeadshots listening on port ${port}.`)
 });
+
 
 
 // Build headshots html file
