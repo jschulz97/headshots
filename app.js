@@ -12,6 +12,7 @@ const { resourceLimits } = require('worker_threads');
 const { join } = require('path');
 
 
+
 // Parameters
 const hostname = '0.0.0.0';
 const port = 3030;
@@ -92,85 +93,102 @@ app.use(cors({origin: '*'}));
 app.use(bodyParser.json({limit: '150mb'}));
 
 
-// Home Page
-var team_names;
-var team_ids;
-app.get('/', function(req, res) {
-  fs.readFile('./index.htmlx', function(err, data) {
-    team_names = [];
-    team_ids = [];
-    con.query("SELECT * FROM camnotes.Sports;", function (err, result, fields) {
-      if (err) throw err;
-      var text = '';
+// // Home Page
+// var team_names;
+// var team_ids;
+// app.get('/', function(req, res) {
+//   fs.readFile('./index.htmlx', function(err, data) {
+//     team_names = [];
+//     team_ids = [];
+//     con.query("SELECT * FROM camnotes.Sports;", function (err, result, fields) {
+//       if (err) throw err;
+//       var text = '';
 
-      for(var i=0; i<result.length; i++) {
-        team_names.push(result[i]['name']);
-        team_ids.push(result[i]['id']);
-        text += ' <a class="dropdown-item" href="#">' + result[i]['name'] + '</a>';
-      }
+//       for(var i=0; i<result.length; i++) {
+//         team_names.push(result[i]['name']);
+//         team_ids.push(result[i]['id']);
+//         text += ' <a class="dropdown-item" href="#">' + result[i]['name'] + '</a>';
+//       }
 
-      res.end(sv_header+sv_nav+dropdown_head+text+dropdown_tail);
-    });
+//       res.end(sv_header+sv_nav+dropdown_head+text+dropdown_tail);
+//     });
     
-  });
-});
+//   });
+// });
 
 
-// Display printable headshots
-app.get('/headshots', function(req, res) {
-  var subpage = req.url.slice(1,req.url.length)
-  var text = "Loading game " + subpage + "...";
-  console.log('doing headshots?')
-  fs.readFile('./headshots.html', function(err, data) {
-    res.write(data);
-    res.end();
-  });
-});
+// // Display printable headshots
+// app.get('/headshots', function(req, res) {
+//   var subpage = req.url.slice(1,req.url.length)
+//   var text = "Loading game " + subpage + "...";
+//   console.log('doing headshots?')
+//   fs.readFile('./headshots.html', function(err, data) {
+//     res.write(data);
+//     res.end();
+//   });
+// });
 
 
-// FULL data re-grab
-app.get('/redo_data', function (req, res) {
-  fs.writeFile('./headshots.html', default_headshots_html, () => {
-    console.log('Done wiping headshots.html')
-  });
+// // FULL data re-grab
+// app.get('/redo_data', function (req, res) {
+//   fs.writeFile('./headshots.html', default_headshots_html, () => {
+//     console.log('Done wiping headshots.html')
+//   });
 
-  fs.readFile('./index.html', function(err, data) {
-    var sl_obj = new sl.Scrape_Learfield(done_scraping);
-    var players = sl_obj.scrape(url_base, sport);
+//   fs.readFile('./index.html', function(err, data) {
+//     var sl_obj = new sl.Scrape_Learfield(done_scraping);
+//     var players = sl_obj.scrape(url_base, sport);
 
-    res.write(data);
-    res.end();
-  })
-});
+//     res.write(data);
+//     res.end();
+//   })
+// });
 
 
-// FULL data re-grab
-app.post('/send_raw_roster', function (req, res) {
-  console.log('RECEIVED POST REQ')
-  // console.log(req.body);
-  // console.log(req.params);
-  var form = new formidable.IncomingForm();
-  form.parse(req, function (err, fields, files) {
-    console.log(files)
-    var oldpath = files.filetoupload.filepath;
-    var time = new Date().getTime().toString();
-    var newpath = '/www/jschulz.dev/headshots/sites/' + time + '.txt';
-    fs.rename(oldpath, newpath, function (err) {
-      if (err) throw err;
-      res.end('<html><h3>File uploaded and moved!</h3><a href="/admin" role="button"><button type="button" class="btn">Back to Admin Page</button></a></html>');
-      // res.end('<html><meta http-equiv="Refresh" content="0; url=http://cams.schulzvideo.com/admin"/>');
+// // FULL data re-grab
+// app.post('/send_raw_roster', function (req, res) {
+//   console.log('RECEIVED POST REQ')
+//   // console.log(req.body);
+//   // console.log(req.params);
+//   var form = new formidable.IncomingForm();
+//   form.parse(req, function (err, fields, files) {
+//     console.log(files)
+//     var oldpath = files.filetoupload.filepath;
+//     var time = new Date().getTime().toString();
+//     var newpath = '/www/jschulz.dev/headshots/sites/' + time + '.txt';
+//     fs.rename(oldpath, newpath, function (err) {
+//       if (err) throw err;
+//       res.end('<html><h3>File uploaded and moved!</h3><a href="/admin" role="button"><button type="button" class="btn">Back to Admin Page</button></a></html>');
+//       // res.end('<html><meta http-equiv="Refresh" content="0; url=http://cams.schulzvideo.com/admin"/>');
 
-    });
-  });
-});
+//     });
+//   });
+// });
 
 
 // Admin page
-app.get('/admin', function (req, res) {
-  fs.readFile('./admin.htmlx', function(err, data) {
-    res.end(sv_header+sv_nav+data);
+app.get('/team_name_from_game_id', function (req, res) {
+  // SELECT name FROM Teams WHERE id=(SELECT team1_id FROM Games WHERE id=2);
+  console.log(req);
+});
+
+
+// Get List of recent Games
+app.get('/get_recent_games', function (req, res) {
+  // SELECT name FROM Teams WHERE id=(SELECT team1_id FROM Games WHERE id=2);
+  console.log('GET: get_recent_games')
+  con.query(`
+    SELECT Games.id, Games.date, T1.name t1name, T2.name t2name, Sports.name sport
+    FROM camnotes.Games Games
+    JOIN camnotes.Teams T1 ON Games.team1_id = T1.id 
+    JOIN camnotes.Teams T2 ON Games.team2_id = T2.id
+    JOIN camnotes.Sports Sports ON Games.sport_id = Sports.id;`
+  , function (err, result, fields) {
+    if (err) throw err;
+    res.end(JSON.stringify(result));
   });
 });
+
 
 
 

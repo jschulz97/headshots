@@ -5,6 +5,7 @@
     "express": "^4.17.3",
     "formidable": "^2.0.1",
     "html-element": "^2.3.1",
+    "json": "^11.0.0",
     "mysql": "^2.18.1",
     "node-fetch": "^2.6.7",
     "node-html-parser": "^5.3.3"
