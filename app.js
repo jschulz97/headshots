@@ -12,6 +12,14 @@ const { resourceLimits } = require('worker_threads');
 const { join } = require('path');
 
 
+// Okta AUTH
+// Client ID
+//0oa4fhgs9t9mVOxMq5d7
+// Domain
+//dev-99228383.okta.com
+
+
+
 
 // Parameters
 const hostname = '0.0.0.0';
@@ -183,6 +191,22 @@ app.get('/get_recent_games', function (req, res) {
     JOIN camnotes.Teams T1 ON Games.team1_id = T1.id 
     JOIN camnotes.Teams T2 ON Games.team2_id = T2.id
     JOIN camnotes.Sports Sports ON Games.sport_id = Sports.id;`
+  , function (err, result, fields) {
+    if (err) throw err;
+    res.end(JSON.stringify(result));
+  });
+});
+
+
+// Get List of teams
+app.get('/get_teams', function (req, res) {
+  // SELECT name FROM Teams WHERE id=(SELECT team1_id FROM Games WHERE id=2);
+  console.log('GET: get_teams '+req.query.name)
+  con.query(`
+    SELECT Teams.id id, Teams.name name, Sports.name sport
+    FROM camnotes.Teams Teams
+    JOIN camnotes.Sports Sports ON Teams.sport = Sports.id
+    WHERE Teams.name LIKE '%`+req.query.name+`%';`
   , function (err, result, fields) {
     if (err) throw err;
     res.end(JSON.stringify(result));
