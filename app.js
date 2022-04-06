@@ -52,16 +52,16 @@ var sv_nav;
 // });
 
 
-// HTML Assets
-fs.readFile('./sv_header.htmlx', function(err, data) {
-  sv_header = data;
-  console.log('read sv_header');
-});
+// // HTML Assets
+// fs.readFile('./sv_header.htmlx', function(err, data) {
+//   sv_header = data;
+//   console.log('read sv_header');
+// });
 
-fs.readFile('./sv_nav.htmlx', function(err, data) {
-  sv_nav = data;
-  console.log('read sv_nav');
-});
+// fs.readFile('./sv_nav.htmlx', function(err, data) {
+//   sv_nav = data;
+//   console.log('read sv_nav');
+// });
 
 
 // HTML
@@ -153,25 +153,29 @@ app.use(bodyParser.json({limit: '150mb'}));
 // });
 
 
-// // FULL data re-grab
-// app.post('/send_raw_roster', function (req, res) {
-//   console.log('RECEIVED POST REQ')
-//   // console.log(req.body);
-//   // console.log(req.params);
-//   var form = new formidable.IncomingForm();
-//   form.parse(req, function (err, fields, files) {
-//     console.log(files)
-//     var oldpath = files.filetoupload.filepath;
-//     var time = new Date().getTime().toString();
-//     var newpath = '/www/jschulz.dev/headshots/sites/' + time + '.txt';
-//     fs.rename(oldpath, newpath, function (err) {
-//       if (err) throw err;
-//       res.end('<html><h3>File uploaded and moved!</h3><a href="/admin" role="button"><button type="button" class="btn">Back to Admin Page</button></a></html>');
-//       // res.end('<html><meta http-equiv="Refresh" content="0; url=http://cams.schulzvideo.com/admin"/>');
-
-//     });
-//   });
-// });
+app.post('/send_raw_roster', function (req, res) {
+  console.log('RECEIVED POST REQ')
+  // console.log(req.body);
+  // console.log(req.params);
+  var form = new formidable.IncomingForm();
+  form.parse(req, function (err, fields, files) {
+    var oldpath = files.filetoupload.filepath;
+    var time = new Date().getTime().toString();
+    var newpath = '/www/schulzvideo.com/public_html/headshots/sites/' + time + '.txt';
+    con.query(`
+      UPDATE camnotes.Teams
+      SET dir_html='`+newpath+`'
+      WHERE id=`+fields.team_id+`;
+    `, function (err, result, fields) {
+      if (err) throw err;
+    });
+    console.log('Uploading raw roster for team id: '+fields.team_id);
+    fs.rename(oldpath, newpath, function (err) {
+      if (err) throw err;
+      res.end('<html><h3>File uploaded and moved!</h3><a href="http://cams.schulzvideo.com/admin" role="button"><button type="button" class="btn">Back to Admin Page</button></a></html>');
+    });
+  });
+});
 
 
 // Admin page
@@ -201,7 +205,7 @@ app.get('/get_recent_games', function (req, res) {
 // Get List of teams
 app.get('/get_teams', function (req, res) {
   // SELECT name FROM Teams WHERE id=(SELECT team1_id FROM Games WHERE id=2);
-  console.log('GET: get_teams '+req.query.name)
+  console.log('GET: get_teams: '+req.query.name)
   con.query(`
     SELECT Teams.id id, Teams.name name, Sports.name sport
     FROM camnotes.Teams Teams
@@ -214,19 +218,44 @@ app.get('/get_teams', function (req, res) {
 });
 
 
+// 03 Add Team
+app.get('/add_team', function (req, res) {
+  console.log('GET: add_team: '+req.query.name)
+  con.query(`INSERT INTO camnotes.Teams (name,sport) VALUES ('`+req.query.name+`', '`+req.query.sport+`');`, function (err, result, fields) {
+    if (err) throw err;
+    con.query(`
+      SELECT Teams.id id, Teams.name name, Sports.name sport
+      FROM camnotes.Teams Teams
+      JOIN camnotes.Sports Sports ON Teams.sport = Sports.id
+      WHERE Teams.name='`+req.query.name+`' AND Teams.sport=`+req.query.sport+';'
+    , function (err, result, fields) {
+      if (err) throw err;
+      res.end(JSON.stringify(result));
+    });
+  });
+});
+
+
+// Get List of teams
+app.get('/get_sports', function (req, res) {
+  // SELECT name FROM Teams WHERE id=(SELECT team1_id FROM Games WHERE id=2);
+  console.log('GET: get_sports '+req.query.name)
+  con.query(`
+    SELECT *
+    FROM camnotes.Sports;`
+  , function (err, result, fields) {
+    if (err) throw err;
+    res.end(JSON.stringify(result));
+  });
+});
+
 
 
 // FULL data re-grab
 app.get('/admin/upload_roster', function (req, res) {
-
-  text = `<html>
-    <form action="http://cams.schulzvideo.com/send_raw_roster" enctype="multipart/form-data" method="POST">
-    <input type="file" class="admin__input" name="filetoupload" />
-    <input class="admin__submit" type="submit" />
-  </form>
-  `
-
-  res.end(text);
+  fs.readFile('./upload_roster.htmlx', function(err, data) {
+    res.end(data);
+  });
 
   // res.end(text3);
 
