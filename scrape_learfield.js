@@ -2,6 +2,7 @@ const HTMLParser = require('node-html-parser');
 const axios = require('axios'); 
 const htmlelement = require('html-element');
 const fetch = require('node-fetch');
+const fs = require('fs'); //file system
 
 
 const table_class_list = [
@@ -18,6 +19,7 @@ const table_class_list = [
 class Player {
     constructor() {
         this.number = -1;
+        this.team_id = -1;
         this.fname = 'Fname';
         this.lname = 'Lastname';
         this.height_f = 'h_f';
@@ -36,28 +38,33 @@ class Scrape_Learfield {
     }
     
     
-    scrape(base_url, sport) {
+    scrape(team_id, dir_html, base_url) {
         // this.base_url = base_url;
 
-        var url = base_url+'/sports/'+sport+'/roster';
-        var root;
-        console.log('Accessing '+ url + '...');
-        // axios.get(url)
-        // .then(res => {
-        //     handle_result(res);
-        // })
-        // .catch(error => {
-        //     console.error(error);
-        // })
-        fetch(`${url}`)
-        .then (res => res.text())
-        .then (body => root = this.handle_roster_result(body, base_url))
-        // .then (() => extractData(root))
+        // var url = base_url+'/sports/'+sport_name+'/roster';
+        // var root;
+        // console.log('Accessing '+ url + '...');
+        // // axios.get(url)
+        // // .then(res => {
+        // //     handle_result(res);
+        // // })
+        // // .catch(error => {
+        // //     console.error(error);
+        // // })
+        // fetch(`${url}`)
+        // .then (res => res.text())
+        // .then (body => root = this.handle_roster_result(body, base_url))
+        // // .then (() => extractData(root))
+        var this_copy = this;
+        fs.readFile(dir_html, function(err, data) {
+            this_copy.handle_roster_result(data, team_id, base_url);
+        });
+
         return
     }
 
 
-    handle_roster_result(res, base_url) {
+    handle_roster_result(res, team_id, base_url) {
         var root = HTMLParser.parse(res);
         var page_type = 1;
         var subelement;
@@ -79,6 +86,7 @@ class Scrape_Learfield {
                             if(subelement.rawAttrs.includes(table_class_list[0])) {
                                 player = new Player();
                                 // console.log(subelement.childNodes[0]._rawText)
+                                player.team_id = team_id;
                                 player.number = subelement.childNodes[0]._rawText;
                             }
                             if(subelement.rawAttrs.includes(table_class_list[1])) {
@@ -101,7 +109,12 @@ class Scrape_Learfield {
                                 player.position = subelement.childNodes[0]._rawText;
                             }
                             if(subelement.rawAttrs.includes(table_class_list[5])) {
-                                player.bats = subelement.childNodes[0].childNodes[0].rawText.slice(0,1);
+                                try {
+                                    player.bats = subelement.childNodes[0].childNodes[0].rawText.slice(0,1);
+                                } catch(error) {
+                                    console.log(error);
+                                    player.bats = '';
+                                }
                                 // console.log(subelement.childNodes[0].childNodes[0].rawText.slice(0,1))
                             }
                             if(subelement.rawAttrs.includes(table_class_list[6])) {
@@ -114,14 +127,14 @@ class Scrape_Learfield {
                 }
             }
             
-            this.create_player(player_list);
+            this.create_player(team_id, player_list, base_url);
             // console.log('\nNEW REQUEST #######################################################################\n')
         }
     }
 
 
 
-    async create_player(player_list) {
+    async create_player(team_id, player_list, base_url) {
         var headshot_urls = [];
 
         for(let j=0; j<player_list.length; j++) {
@@ -131,15 +144,18 @@ class Scrape_Learfield {
             var elements = root.getElementsByTagName('img');
             
             for(let i=0; i < elements.length; i++) {    
-                if(elements[i].rawAttrs.includes('net/images/2022')) {
+                if(elements[i].rawAttrs.includes(player_list[j].fname)) {
                     var url = elements[i].rawAttrs.split('"')[1].split('?')[0];
+                    if(!url.includes('http')) {
+                        url = base_url + url;
+                    }
                 }
             }
-            console.log(url)
+            // console.log(url)
             headshot_urls.push(url)
         }
 
-        this.callback(headshot_urls, player_list)
+        this.callback(team_id, headshot_urls, player_list)
     }
 }
 

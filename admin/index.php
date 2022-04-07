@@ -112,6 +112,15 @@
         });
 
 
+        $('#04_btn').click(function(e) {
+            e.preventDefault();
+            var team_id = $('#04_teamid').val();
+            $.get('http://node.cams.schulzvideo.com/execute_scrape?team_id='+team_id, function(data, status) {
+                
+            });
+        });
+
+
     });
 
 </script>
@@ -174,6 +183,19 @@
                 <div class='card-footer'></div>
             </div>
             
+            <div class='card' id='04'>
+                <div class='card-header'>
+                    <h4>04 Scrape Roster</h4>
+                </div>
+                <div class='card-body'>
+                    <form>
+                        <label>Team ID:</label>
+                        <input type='text' id='04_teamid'>
+                        <button class='btn' id='04_btn'>Scrape</button>
+                    </form>
+                </div>
+                <div class='card-footer'></div>
+            </div>
             
 
             

@@ -250,6 +250,24 @@ app.get('/get_sports', function (req, res) {
 });
 
 
+app.get('/execute_scrape', function(req, res) {
+  fs.readFile('./default_headshots.htmlx', function(err,data) {
+    fs.writeFile('./'+req.query.team_id+'.html', data, () => {
+      console.log('Done initializing '+req.query.team_id+'.html')
+    });
+  });
+
+  var sl_obj = new sl.Scrape_Learfield(done_scraping);
+  con.query(` SELECT Teams.dir_html, Sports.name, Teams.base_url
+              FROM camnotes.Teams Teams 
+              JOIN camnotes.Sports Sports ON Teams.sport = Sports.id
+              WHERE Teams.id=`+req.query.team_id+`;`
+  , function (err, result, fields) {
+    if (err) throw err;
+    var players = sl_obj.scrape(req.query.team_id, result[0]['dir_html'], result[0]['base_url']);
+  }); 
+});
+
 
 // FULL data re-grab
 app.get('/admin/upload_roster', function (req, res) {
@@ -277,7 +295,7 @@ app.listen(port, function() {
 
 
 // Build headshots html file
-function done_scraping(player_urls, player_list) {
+function done_scraping(team_id, player_urls, player_list) {
   full_html = '<div class="grid-container">\n';
   for(let i=0; i<player_urls.length; i++) {
     // if(i % 5 == 0 && i != 0) {
@@ -289,6 +307,6 @@ function done_scraping(player_urls, player_list) {
     html_post = html_post + '<strong>' + player_list[i].number + '</strong> ' + player_list[i].fname + ' ' + player_list[i].lname + '</div>\n</div>\n</div>\n'
     full_html = full_html + html_pre + player_urls[i] + html_post;
   }
-  fs.appendFile('./headshots.html', full_html, ()=>{});
+  fs.appendFile(team_id+'.html', full_html, ()=>{});
   console.log('Headshots Finished')
 }
