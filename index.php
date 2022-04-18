@@ -2,6 +2,7 @@
 <?php include "sv_header.html"; ?>
 
 
+
 <script>
     // Maps dropdown indices to game ids
     var dropdown_index_to_gameid = [];
@@ -47,7 +48,7 @@
             
             // make cookie
             // Expire 24 hours
-            modify_cookie('camnotes_gameid', id, 24*60*60*1000);
+            modify_cookie('camnotes_gameid', id, 7*24*60*60*1000);
             console.log('Game ID '+id+' populated');
         });
     }
@@ -81,7 +82,7 @@
         $(".dropdown").on('click', 'a', function(){
             $("#game_select_button:first-child").text($(this).text());
             $("#game_select_button:first-child").val($(this).text());
-            modify_cookie('camnotes_gameid', dropdown_index_to_gameid[$(this).index()], 24*60*60*1000);
+            modify_cookie('camnotes_gameid', dropdown_index_to_gameid[$(this).index()], 7*24*60*60*1000);
         });
     });
 
@@ -118,7 +119,7 @@
                         <div class='card-body'>
                             <div class='row'>
                                 <div class="col-sm-6">
-                                    <a href="services">
+                                    <a href="roster.php">
                                         <div id="this_div_here" class="card-blue card">
                                             <br>
                                             <img class='mx-auto d-block card-img-top card-icon' src='./assets/icon_list.png'>
@@ -130,7 +131,7 @@
                                     </a>
                                 </div>
                                 <div class="col-sm-6">
-                                    <a href="support">
+                                    <a href="headshots.php">
                                         <div class="card-blue card">
                                             <br>
                                             <img class='mx-auto d-block card-img-top card-icon' src='assets/icon_face.png'>

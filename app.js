@@ -10,6 +10,7 @@ var formidable = require('formidable');
 const sl = require('./scrape_learfield');
 const { resourceLimits } = require('worker_threads');
 const { join } = require('path');
+const { addAbortSignal } = require('stream');
 
 
 // Okta AUTH
@@ -302,11 +303,65 @@ function done_scraping(team_id, player_urls, player_list) {
     //   full_html = full_html + '</div><div class="grid-container">'
     // }
 
-    html_pre = '<div class="grid-item">\n<div class="well">\n<img src="';
-    html_post = '" style="max-width:100%"/>\n<div>';
-    html_post = html_post + '<strong>' + player_list[i].number + '</strong> ' + player_list[i].fname + ' ' + player_list[i].lname + '</div>\n</div>\n</div>\n'
+    html_pre = '<div class="grid-item">\n<div class="well">\n<div class="crop"><img src="';
+    html_post = '" style=""/>\n</div>\n<div>';
+    html_post = html_post + '<strong>' + player_list[i].number + '</strong> ' + player_list[i].fname + '<br>' + player_list[i].lname + '</div>\n</div>\n</div>\n'
     full_html = full_html + html_pre + player_urls[i] + html_post;
   }
-  fs.appendFile(team_id+'.html', full_html, ()=>{});
-  console.log('Headshots Finished')
+  fs.appendFile(team_id+'.html', full_html+'</div>', ()=>{});
+
+  // query_string = `INSERT INTO camnotes.Players (team_id,   
+  //   number,
+  //   f_name, 
+  //   l_name, 
+  //   height_f,
+  //   height_i,
+  //   position,
+  //   bats,
+  //   year) VALUES (`;
+  
+  // for(let i=0; i<5; i++) {
+  //   solo_query = structuredClone(query_string);
+  //   // team id
+  //   solo_query += player_list[i]['team_id'] + ',';
+  //   // number
+  //   solo_query += '"'+player_list[i]['number'] + '",';
+  //   // fname
+  //   solo_query += '"'+player_list[i]['fname'] + '",';
+  //   // lname
+  //   solo_query += '"'+player_list[i]['lname'] + '",';
+  //   // height_f
+  //   solo_query += player_list[i]['height_f'] + ',';
+  //   // height_i
+  //   solo_query += player_list[i]['height_i'] + ',';
+  //   // POS
+  //   solo_query += '"'+player_list[i]['position'] + '",';
+  //   // bats
+  //   solo_query += '"'+player_list[i]['bats'] + '",';    
+  //   // year
+  //   solo_query += '"'+player_list[i]['year'] + '"';
+    
+
+  //   con.query('SELECT * FROM camnotes.Players WHERE team_id=1 and number="1"', 
+  //     function(err, result, fields) {
+  //       if(err) throw err;
+  //       // if record doesn't exist, insert
+  //       // update and insert and fundamentally differently formed....
+  //       // maybe make a function for formatting each? 
+  //       if(result.length == 0) {
+  //         con.query(solo_query + ');'
+  //           , function (err, result, fields) {
+  //             if (err) throw err;
+  //             console.log('player done')
+  //         }); 
+  //       // if record exists, update
+  //       } else {
+  //         console.log(result);
+  //       }
+  //     }
+  //   );
+  // }
+
+  console.log('Headshots Finished');
 }
+

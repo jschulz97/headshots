@@ -123,6 +123,14 @@
 
     });
 
+    // Range for shifting headshots on card
+    //<input id='img-shift-range' type="range" class="form-range " min="-100" max="100">
+    var default_img_shift = -80;
+    $(document).on('input', '#img-shift-range', function() {
+        console.log(parseInt(default_img_shift)+parseInt($(this).val()) + '%');
+        $('.crop img').css('top',  parseInt(default_img_shift)+parseInt($(this).val()) + '%')
+    });
+
 </script>
 
 
