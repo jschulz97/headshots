@@ -11,7 +11,7 @@ const table_class_list = [
     'height',
     'rp_weight',
     'rp_position_short',
-    'sidearm-table-custom-field rp_custom1',
+    'sidearm-table-custom-field rp_custom',
     'roster_class'
 ]
 
@@ -110,7 +110,9 @@ class Scrape_Learfield {
                             }
                             if(subelement.rawAttrs.includes(table_class_list[5])) {
                                 try {
-                                    player.bats = subelement.childNodes[0].childNodes[0].rawText.slice(0,1);
+                                    if(subelement.childNodes[0].rawAttrs.includes('B/T')) {
+                                        player.bats = subelement.childNodes[0].childNodes[0].rawText.slice(0,1);
+                                    }
                                 } catch(error) {
                                     console.log(error);
                                     player.bats = '';

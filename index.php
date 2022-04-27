@@ -7,6 +7,12 @@
     // Maps dropdown indices to game ids
     var dropdown_index_to_gameid = [];
 
+    function pretty_date(date) {
+        date_str = new Date(date).toUTCString();
+        arr = date_str.split(' '); 
+        return arr[0]+' '+arr[1]+' '+arr[2]+' '+arr[3];
+    }
+
     // Populates dropdown on load
     function populate_game_dropdown_list() {
         $.get('http://node.cams.schulzvideo.com/get_recent_games', function(data, status) {
@@ -29,7 +35,7 @@
                     get_local_index_from_id = i;
                 }
                 var d = new Date(result[i]['date']);
-                built_html += '<a class="dropdown-item" href="#">' + d.toDateString() + ' - ';
+                built_html += '<a class="dropdown-item" href="#">' + pretty_date(d) + ' - ';
                 built_html += result[i]['t1name'] + ' vs ';
                 built_html += result[i]['t2name'] + ' ';
                 built_html += result[i]['sport'] + '</a>';
@@ -42,7 +48,7 @@
             // build string for dropdown button label
             var i = get_local_index_from_id;
 
-            $('#game_select_button').text(new Date(result[i]['date']).toDateString() + 
+            $('#game_select_button').text(pretty_date(result[i]['date'])+ 
                 ' - ' + result[i]['t1name'] + ' vs ' + 
                 result[i]['t2name'] + ' ' + result[i]['sport']);
             
@@ -63,10 +69,10 @@
     }
 
     // Searches browser for cookie value by name
-    function get_cookie(name, value, expire_seconds) {
+    function get_cookie(name) {
         var cookie_string = document.cookie.split(';');
         for(var i=0; i<cookie_string.length; i++) {
-            if(cookie_string[i].includes('camnotes_gameid')) {
+            if(cookie_string[i].includes(name)) {
                 return cookie_string[i].split('=')[1].valueOf();
             }
         }
@@ -83,6 +89,10 @@
             $("#game_select_button:first-child").text($(this).text());
             $("#game_select_button:first-child").val($(this).text());
             modify_cookie('camnotes_gameid', dropdown_index_to_gameid[$(this).index()], 7*24*60*60*1000);
+        });
+
+        $("#click_headshots").click( function() {
+            window.location.href = 'headshots.php?game_id='+get_cookie('camnotes_gameid');
         });
     });
 
@@ -119,7 +129,7 @@
                         <div class='card-body'>
                             <div class='row'>
                                 <div class="col-sm-6">
-                                    <a href="roster.php">
+                                    <a href="#">
                                         <div id="this_div_here" class="card-blue card">
                                             <br>
                                             <img class='mx-auto d-block card-img-top card-icon' src='./assets/icon_list.png'>
@@ -131,7 +141,7 @@
                                     </a>
                                 </div>
                                 <div class="col-sm-6">
-                                    <a href="headshots.php">
+                                    <a href="#" id='click_headshots'>
                                         <div class="card-blue card">
                                             <br>
                                             <img class='mx-auto d-block card-img-top card-icon' src='assets/icon_face.png'>
