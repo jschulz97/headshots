@@ -31,10 +31,23 @@ class Player {
     }
 }
 
+class Coach {
+    constructor() {
+        this.priority = -1;
+        this.team_id = -1;
+        this.fname = 'Fname';
+        this.lname = 'Lastname';
+        this.title = 'Long Title';
+        this.short_title = 'ST';
+        this.url = 'none';
+    }
+}
+
 
 class Scrape_Learfield {
-    constructor(callback) {
-        this.callback = callback;
+    constructor(callback_players, callback_coaches) {
+        this.callback_players = callback_players;
+        this.callback_coaches = callback_coaches;
     }
     
     
@@ -73,64 +86,107 @@ class Scrape_Learfield {
 
         // roster view
         if(page_type == 1) {
+        //     var elements = root.getElementsByTagName('tr');
+        //     for(let i=0; i < elements.length; i++) { 
+        //     // for(let i=0; i < 5; i++) {    
+        //         // if(elements[i].rawAttrs.includes('')):
+        //         //     console.log(elements[0]);
+        //         for(let j=0; j < elements[i].childNodes.length; j++){
+        //             subelement = elements[i].childNodes[j];
+        //             if(subelement.constructor.name == 'HTMLElement') {
+        //                 if(subelement.rawAttrs.includes('class')){
+        //                     // console.log(subelement)
+        //                     if(subelement.rawAttrs.includes(table_class_list[0])) {
+        //                         player = new Player();
+        //                         // console.log(subelement.childNodes[0]._rawText)
+        //                         player.team_id = team_id;
+        //                         player.number = subelement.childNodes[0]._rawText;
+        //                     }
+        //                     if(subelement.rawAttrs.includes(table_class_list[1])) {
+        //                         // console.log(subelement.childNodes[1].rawAttrs)
+        //                         var raw_attr_with_url = subelement.childNodes[1].rawAttrs;
+        //                         var split_em = raw_attr_with_url.split('"');
+        //                         var url = base_url + split_em[1];
+        //                         player.url = url;
+        //                         var names = subelement.childNodes[1].rawText
+        //                         player.fname = names.split(' ')[0]
+        //                         player.lname = names.slice(player.fname.length+1)   
+        //                         // console.log(player.fname + ',' + player.lname)                         
+        //                     }
+        //                     if(subelement.rawAttrs.includes(table_class_list[2])) {
+        //                         var vals = subelement.childNodes[0]._rawText.split('-');
+        //                         player.height_f = vals[0];
+        //                         player.height_i = vals[1];
+        //                     }
+        //                     if(subelement.rawAttrs.includes(table_class_list[4])) {
+        //                         player.position = subelement.childNodes[0]._rawText;
+        //                     }
+        //                     if(subelement.rawAttrs.includes(table_class_list[5])) {
+        //                         try {
+        //                             if(subelement.childNodes[0].rawAttrs.includes('B/T')) {
+        //                                 player.bats = subelement.childNodes[0].childNodes[0].rawText.slice(0,1);
+        //                             }
+        //                         } catch(error) {
+        //                             console.log(error);
+        //                             player.bats = '';
+        //                         }
+        //                         // console.log(subelement.childNodes[0].childNodes[0].rawText.slice(0,1))
+        //                     }
+        //                     if(subelement.rawAttrs.includes(table_class_list[6])) {
+        //                         player.year = subelement.childNodes[0]._rawText;
+        //                         player_list.push(player);
+        //                     }
+                            
+        //                 }
+        //             }
+        //         }
+        //     }
+
+            // Scrape Coaches
             var elements = root.getElementsByTagName('tr');
+            var priority = 0;
+            var coach_list = [];
             for(let i=0; i < elements.length; i++) { 
             // for(let i=0; i < 5; i++) {    
                 // if(elements[i].rawAttrs.includes('')):
                 //     console.log(elements[0]);
                 for(let j=0; j < elements[i].childNodes.length; j++){
                     subelement = elements[i].childNodes[j];
+                    
                     if(subelement.constructor.name == 'HTMLElement') {
-                        if(subelement.rawAttrs.includes('class')){
-                            // console.log(subelement)
-                            if(subelement.rawAttrs.includes(table_class_list[0])) {
-                                player = new Player();
-                                // console.log(subelement.childNodes[0]._rawText)
-                                player.team_id = team_id;
-                                player.number = subelement.childNodes[0]._rawText;
-                            }
-                            if(subelement.rawAttrs.includes(table_class_list[1])) {
-                                // console.log(subelement.childNodes[1].rawAttrs)
-                                var raw_attr_with_url = subelement.childNodes[1].rawAttrs;
-                                var split_em = raw_attr_with_url.split('"');
-                                var url = base_url + split_em[1];
-                                player.url = url;
-                                var names = subelement.childNodes[1].rawText
-                                player.fname = names.split(' ')[0]
-                                player.lname = names.slice(player.fname.length+1)   
-                                // console.log(player.fname + ',' + player.lname)                         
-                            }
-                            if(subelement.rawAttrs.includes(table_class_list[2])) {
-                                var vals = subelement.childNodes[0]._rawText.split('-');
-                                player.height_f = vals[0];
-                                player.height_i = vals[1];
-                            }
-                            if(subelement.rawAttrs.includes(table_class_list[4])) {
-                                player.position = subelement.childNodes[0]._rawText;
-                            }
-                            if(subelement.rawAttrs.includes(table_class_list[5])) {
-                                try {
-                                    if(subelement.childNodes[0].rawAttrs.includes('B/T')) {
-                                        player.bats = subelement.childNodes[0].childNodes[0].rawText.slice(0,1);
-                                    }
-                                } catch(error) {
-                                    console.log(error);
-                                    player.bats = '';
+                        
+                        // if(subelement.rawTagName == 'td') {try {console.log(subelement.childNodes[1].rawTagName)} catch(error) {console.log(error)}}
+                        
+                        for(let k in subelement.childNodes) {
+                            if(subelement.childNodes[k].rawTagName == 'img') {
+                                var coach = new Coach();
+
+                                // url
+                                var split_em = subelement.childNodes[k].rawAttrs.split('"');
+                                var url;
+                                if(split_em[1].includes('http')) {
+                                    url = split_em[1].split('?')[0];
+                                } else {
+                                    url = base_url + split_em[1].split('?')[0];
                                 }
-                                // console.log(subelement.childNodes[0].childNodes[0].rawText.slice(0,1))
+                                coach.url = url;
+                                coach.team_id = team_id;
+                                coach.priority = priority;
+                                priority = priority + 1;
+
+                                coach.fname = elements[i].childNodes[j+2].rawText.split(' ')[0];
+                                coach.lname = elements[i].childNodes[j+2].rawText.slice(coach.fname.length+1)   ;
+
+                                coach.title = elements[i].childNodes[j+4].rawText;
+                                coach_list.push(coach);
                             }
-                            if(subelement.rawAttrs.includes(table_class_list[6])) {
-                                player.year = subelement.childNodes[0]._rawText;
-                                player_list.push(player);
-                            }
-                            
                         }
                     }
                 }
             }
             
-            this.create_player(team_id, player_list, base_url);
-            // console.log('\nNEW REQUEST #######################################################################\n')
+            // this.create_player(team_id, player_list, base_url);
+            this.callback_coaches(coach_list);
         }
     }
 
@@ -157,7 +213,7 @@ class Scrape_Learfield {
             headshot_urls.push(url)
         }
 
-        this.callback(team_id, headshot_urls, player_list)
+        this.callback_players(headshot_urls, player_list)
     }
 }
 

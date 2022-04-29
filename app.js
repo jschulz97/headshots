@@ -1,5 +1,7 @@
 // Requires
 const http = require('http');
+const https = require('https');
+
 const fs = require('fs'); //file system
 const mysql = require('mysql');
 const express = require('express');
@@ -101,6 +103,7 @@ dropdown_tail = '</div></div>'
 // Express Server
 const app = express();
 app.use(cors({origin: '*'}));
+app.set('trust proxy', true);
 // app.use(bodyParser.json());
 app.use(bodyParser.json({limit: '150mb'}));
 
@@ -183,10 +186,6 @@ app.post('/send_raw_roster', function (req, res) {
 
 
 // Admin page
-app.get('/team_name_from_game_id', function (req, res) {
-    // SELECT name FROM Teams WHERE id=(SELECT team1_id FROM Games WHERE id=2);
-    console.log(req);
-});
 
 
 // get game info by game id
@@ -207,10 +206,18 @@ app.get('/get_game_by_id', function (req,res) {
 
 // get players by team id
 app.get('/get_players_by_team_id', function (req,res) {
-	con.query(`
-        SELECT *
+    console.log('GET: get_players_by_team_id: '+req.query.team_id);
+	con.query(
+        // `SELECT Players.id, Players.team_id, Players.f_name, Players.l_name, Players.height_f, 
+        //     Players.height_i, Players.position, Players.year, Players.bats, LEFT(Players.number,3) number AS INT,
+        //     Players.headshot
+        // FROM camnotes.Players Players
+		// WHERE Players.team_id=`+req.query.team_id+`
+        // ORDER BY number DESC`+';'
+        `SELECT *
         FROM camnotes.Players Players
-		WHERE Players.team_id=`+req.query.team_id+';'
+		WHERE Players.team_id=`+req.query.team_id+`
+        ORDER BY CAST(Players.number AS unsigned) ASC`+';'
     , function (err, result, fields) {
         if (err) throw err;
         res.end(JSON.stringify(result));
@@ -218,11 +225,69 @@ app.get('/get_players_by_team_id', function (req,res) {
 });
 
 
+// get coaches by team id
+app.get('/get_coaches_by_team_id', function (req,res) {
+    console.log('GET: get_coaches_by_team_id: '+req.query.team_id);
+	con.query(
+        `SELECT *
+        FROM camnotes.Coaches Coaches
+		WHERE Coaches.team_id=`+req.query.team_id+`
+        ORDER BY Coaches.priority ASC`+';'
+    , function (err, result, fields) {
+        if (err) throw err;
+        res.end(JSON.stringify(result));
+    });
+});
+
+
+// Add new coach
+app.get('/insert_coach', function (req, res) {
+    console.log('GET: insert_coach: '+req.query.f_name+' '+req.query.l_name)
+    con.query(
+        dbqb.db_insert_query('camnotes.Coaches',
+            ['team_id','f_name','l_name','priority','title','short_title','headshot'],
+            [req.query.team_id, req.query.f_name, req.query.l_name, req.query.priority, 
+             req.query.title, req.query.short_title, req.query.headshot])
+        , function (err, result, fields) {
+        if (err) throw err;
+        res.end();
+    });
+});
+
+
+// Update coach
+app.get('/update_coach', function (req, res) {
+    console.log('GET: update_coach: '+req.query.f_name+' '+req.query.l_name)
+    con.query(
+        dbqb.db_update_query(
+            'camnotes.Coaches',
+            ['f_name','l_name','priority','title','short_title','headshot'],
+            [req.query.f_name, req.query.l_name, req.query.priority, 
+                req.query.title, req.query.short_title, req.query.headshot],
+            'id='+req.query.id)
+        , function (err, result, fields) {
+        if (err) throw err;
+        res.end();
+    });
+});
+
+
+// Delete Coach
+app.get('/delete_coach', function (req, res) {
+    console.log('GET: delete_coach: '+req.query.id)
+    con.query(
+        `DELETE FROM camnotes.Coaches WHERE id=`+req.query.id
+        , function (err, result, fields) {
+        if (err) throw err;
+        res.end();
+    });
+});
+
 
 // Get List of recent Games
 app.get('/get_recent_games', function (req, res) {
     // SELECT name FROM Teams WHERE id=(SELECT team1_id FROM Games WHERE id=2);
-    console.log('GET: get_recent_games')
+    console.log('GET: get_recent_games '+req.ip)
     con.query(`
         SELECT Games.id, Games.date, T1.name t1name, T2.name t2name, Sports.name sport
         FROM camnotes.Games Games
@@ -312,7 +377,7 @@ app.get('/execute_scrape', function(req, res) {
         });
     });
 
-    var sl_obj = new sl.Scrape_Learfield(done_scraping);
+    var sl_obj = new sl.Scrape_Learfield(done_scraping_players, done_scraping_coaches);
     con.query(` SELECT Teams.dir_html, Sports.name, Teams.base_url
                             FROM camnotes.Teams Teams 
                             JOIN camnotes.Sports Sports ON Teams.sport = Sports.id
@@ -347,6 +412,14 @@ app.listen(port, function() {
     console.log(`SVJSHeadshots listening on port ${port}.`)
 });
 
+// // Create an HTTP service.
+// http.createServer(app).listen(3030);
+// // Create an HTTPS service identical to the HTTP service.
+// var options = {
+//     key: fs.readFileSync('/etc/letsencrypt/live/schulzvideo.com/privkey.pem'),
+//     cert: fs.readFileSync('/etc/letsencrypt/live/schulzvideo.com/fullchain.pem')
+//   };
+// https.createServer(options, app).listen(3031);
 
 
 app.get('/test_query', function (req, res) {
@@ -356,8 +429,8 @@ app.get('/test_query', function (req, res) {
 
 
 
-// Build headshots html file
-function done_scraping(team_id, player_urls, player_list) {
+// Handle player data, commit to DB
+function done_scraping_players(player_urls, player_list) {
 
 	// for all players
 	for(let i in player_list) {
@@ -405,7 +478,61 @@ function done_scraping(team_id, player_urls, player_list) {
 		}); 
 	}
 
-    console.log('Headshots Finished');
+    console.log('Players Finished');
 }
+
+
+
+
+
+// Commit coaches data to DB
+function done_scraping_coaches(coach_list) {
+
+	// for all coaches
+	for(let i in coach_list) {
+		con.query(dbqb.db_select_query(
+			'camnotes.Coaches',
+			['id'],
+			[
+				['team_id','f_name','l_name'],
+				[coach_list[i]['team_id'],coach_list[i]['fname'],coach_list[i]['lname']]
+			])
+		, function(err, result, fields) { 
+			if (err) throw err; 
+
+			// if coach doesn't exist, insert
+			if(result.length == 0) {
+				
+				con.query(dbqb.db_insert_query(
+					'camnotes.Coaches',
+					['team_id','f_name','l_name','title','short_title','priority','headshot'],
+					[coach_list[i]['team_id'],coach_list[i]['fname'],coach_list[i]['lname'],coach_list[i]['title'],coach_list[i]['short_title'],
+					coach_list[i]['priority'],coach_list[i]['url']])
+				, function(err, result, fields) { 
+					if (err) throw err; 
+					console.log('successful insert: ' + coach_list[i]['fname'] + ' ' + coach_list[i]['lname'])
+				}); 
+			} 
+			else
+
+			// if player exists, update
+			{
+				con.query(dbqb.db_update_query(
+					'camnotes.Coaches',
+					['team_id','f_name','l_name','title','short_title','priority','headshot'],
+					[coach_list[i]['team_id'],coach_list[i]['fname'],coach_list[i]['lname'],coach_list[i]['title'],coach_list[i]['short_title'],
+					coach_list[i]['priority'],coach_list[i]['url']],
+					'id='+result[0]['id'])
+				, function(err, result, fields) { 
+					if (err) throw err; 
+					console.log('successful update: '+ coach_list[i]['fname'] + ' ' +coach_list[i]['lname'])
+				}); 
+			}
+		}); 
+	}
+
+    console.log('Coaches Finished');
+}
+
 
 

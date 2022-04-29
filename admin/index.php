@@ -195,7 +195,7 @@
                                 <label>Team 2 ID:</label></td><td>
                                 <input type='text' id='01_team2'>
                             </td></tr><tr><td>
-                                <label>Date (YYYY-MM-DD): </label></td><td>
+                                <label>Date (YYYY-MM-DD): &nbsp</label></td><td>
                                 <input type='text' id='01_date'> 
                             </td></tr>
                         </table>
@@ -211,7 +211,7 @@
                 </div>
                 <div class='card-body'>
                     <form>
-                        <label>Team Name:</label>
+                        <label>Team Name: &nbsp</label>
                         <input type='text' id='02_name'>
                         <button class='btn' id='02_btn'>Search</button>
                     </form>
@@ -226,7 +226,7 @@
                 <div class='card-body'>
                     <form>
                         <table><tr>
-                                <td><label>Team Name:</label></td>
+                                <td><label>Team Name: &nbsp</label></td>
                                 <td><input type='text' id='03_name'></td></tr>
                                 <tr><td><label>Sport ID:</label></td>
                                 <td><input type='text' id='03_sport'></td></tr>
@@ -249,7 +249,7 @@
                 </div>
                 <div class='card-body'>
                     <form>
-                        <label>Team ID:</label>
+                        <label>Team ID: &nbsp</label>
                         <input type='text' id='04_teamid'>
                         <button class='btn' id='04_btn'>Scrape</button>
                     </form>
@@ -258,7 +258,7 @@
             </div>
             
 
-            
+            <
                 
 
         </div>

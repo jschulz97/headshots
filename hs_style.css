@@ -114,7 +114,7 @@ video {
   display: grid;
   grid-auto-flow: row;
   grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-  text-align: center;
+  
 }
 
 .no-padding {
@@ -127,6 +127,38 @@ video {
 
 .team_header {
     text-align: center;
+}
+
+.coach-card {
+    background-color: #d3d3d3;
+    height: 100%;
+    text-align: center;
+}
+
+td {
+    padding: 3px;
+}
+
+.top-name {
+    margin-bottom: -5px;
+    margin-top: -5px;
+}
+
+.bottom-name {
+    margin-bottom: -5px;
+    margin-top: -5px;
+}
+
+/* .material-icons {
+    vertical-align: 10px;
+} */
+
+
+
+@media print {
+    .coach-card {
+        background-color: #d3d3d3;
+    }
 }
 
 
@@ -187,6 +219,11 @@ video {
     #team1_brand_break {
         display: none;
     }
+
+    .behave-like-bootstrap {
+        /* grid-template-columns: 50% 50%; */
+        display: grid;
+    }
     
 }
 
@@ -207,5 +244,36 @@ video {
         display: visibility;
     }
 
+    .behave-like-bootstrap {
+        /* grid-template-columns: 100%; */
+        display: block;
+    }
+
+}
+
+
+
+/* Bootstrap sm col cutoff */
+
+@media (min-width: 576px) {
+    .header-controls-left {
+        float: left;
+    }
+
+    .header-controls-right {
+        float: right;
+    }
+}
+
+@media (max-width: 575px) {
+    .header-controls-left {
+        float: none;
+        text-align: center;
+    }
+
+    .header-controls-right {
+        float: none;
+        text-align: center;
+    }
 }
 
