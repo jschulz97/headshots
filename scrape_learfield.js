@@ -86,61 +86,69 @@ class Scrape_Learfield {
 
         // roster view
         if(page_type == 1) {
-        //     var elements = root.getElementsByTagName('tr');
-        //     for(let i=0; i < elements.length; i++) { 
-        //     // for(let i=0; i < 5; i++) {    
-        //         // if(elements[i].rawAttrs.includes('')):
-        //         //     console.log(elements[0]);
-        //         for(let j=0; j < elements[i].childNodes.length; j++){
-        //             subelement = elements[i].childNodes[j];
-        //             if(subelement.constructor.name == 'HTMLElement') {
-        //                 if(subelement.rawAttrs.includes('class')){
-        //                     // console.log(subelement)
-        //                     if(subelement.rawAttrs.includes(table_class_list[0])) {
-        //                         player = new Player();
-        //                         // console.log(subelement.childNodes[0]._rawText)
-        //                         player.team_id = team_id;
-        //                         player.number = subelement.childNodes[0]._rawText;
-        //                     }
-        //                     if(subelement.rawAttrs.includes(table_class_list[1])) {
-        //                         // console.log(subelement.childNodes[1].rawAttrs)
-        //                         var raw_attr_with_url = subelement.childNodes[1].rawAttrs;
-        //                         var split_em = raw_attr_with_url.split('"');
-        //                         var url = base_url + split_em[1];
-        //                         player.url = url;
-        //                         var names = subelement.childNodes[1].rawText
-        //                         player.fname = names.split(' ')[0]
-        //                         player.lname = names.slice(player.fname.length+1)   
-        //                         // console.log(player.fname + ',' + player.lname)                         
-        //                     }
-        //                     if(subelement.rawAttrs.includes(table_class_list[2])) {
-        //                         var vals = subelement.childNodes[0]._rawText.split('-');
-        //                         player.height_f = vals[0];
-        //                         player.height_i = vals[1];
-        //                     }
-        //                     if(subelement.rawAttrs.includes(table_class_list[4])) {
-        //                         player.position = subelement.childNodes[0]._rawText;
-        //                     }
-        //                     if(subelement.rawAttrs.includes(table_class_list[5])) {
-        //                         try {
-        //                             if(subelement.childNodes[0].rawAttrs.includes('B/T')) {
-        //                                 player.bats = subelement.childNodes[0].childNodes[0].rawText.slice(0,1);
-        //                             }
-        //                         } catch(error) {
-        //                             console.log(error);
-        //                             player.bats = '';
-        //                         }
-        //                         // console.log(subelement.childNodes[0].childNodes[0].rawText.slice(0,1))
-        //                     }
-        //                     if(subelement.rawAttrs.includes(table_class_list[6])) {
-        //                         player.year = subelement.childNodes[0]._rawText;
-        //                         player_list.push(player);
-        //                     }
+            var elements = root.getElementsByTagName('tr');
+            for(let i=0; i < elements.length; i++) { 
+            // for(let i=0; i < 5; i++) {    
+                // if(elements[i].rawAttrs.includes('')):
+                // console.log(elements[0]);
+                for(let j=0; j < elements[i].childNodes.length; j++){
+                    subelement = elements[i].childNodes[j];
+                    
+                    if(subelement.constructor.name == 'HTMLElement') {
+                        
+                        if(subelement.rawAttrs.includes('class')){
+                            // console.log(subelement.rawAttrs);
+                            // console.log(subelement)
+                            if(subelement.rawAttrs.includes(table_class_list[0])) {
+                                player_list.push( new Player() );
+                                // console.log(subelement.childNodes[0]._rawText)
+                                player_list.at(-1).team_id = team_id;
+                                player_list.at(-1).number = subelement.childNodes[0]._rawText;
+                            }
+                            if(subelement.rawAttrs.includes(table_class_list[1])) {
+                                // console.log(subelement.childNodes[1].rawAttrs)
+                                var raw_attr_with_url = subelement.childNodes[1].rawAttrs;
+                                var split_em = raw_attr_with_url.split('"');
+                                var url = base_url + split_em[1];
+                                player_list.at(-1).url = url;
+                                var names = subelement.childNodes[1].rawText
+                                if(names.includes(',')) {
+                                    player_list.at(-1).lname = names.split(', ')[0]
+                                    player_list.at(-1).fname = names.slice(player_list.at(-1).lname.length+2)
+                                } else {
+                                    player_list.at(-1).fname = names.split(' ')[0]
+                                    player_list.at(-1).lname = names.slice(player_list.at(-1).fname.length+1)   
+                                }
+                                // console.log(player.fname + ',' + player.lname)                         
+                            }
+                            if(subelement.rawAttrs.includes(table_class_list[2])) {
+                                var vals = subelement.childNodes[0]._rawText.split('-');
+                                player_list.at(-1).height_f = vals[0];
+                                player_list.at(-1).height_i = vals[1];
+                            }
+                            if(subelement.rawAttrs.includes(table_class_list[4])) {
+                                player_list.at(-1).position = subelement.childNodes[0]._rawText;
+                            }
+                            if(subelement.rawAttrs.includes(table_class_list[5])) {
+                                try {
+                                    if(subelement.childNodes[0].rawAttrs.includes('B/T')) {
+                                        player_list.at(-1).bats = subelement.childNodes[0].childNodes[0].rawText.slice(0,1);
+                                    }
+                                } catch(error) {
+                                    console.log(error);
+                                    player_list.at(-1).bats = '';
+                                }
+                                // console.log(subelement.childNodes[0].childNodes[0].rawText.slice(0,1))
+                            }
+                            if(subelement.rawAttrs.includes(table_class_list[6])) {
+                                player_list.at(-1).year = subelement.childNodes[0]._rawText;
+                                
+                            }
                             
-        //                 }
-        //             }
-        //         }
-        //     }
+                        }
+                    }
+                }
+            }
 
             // Scrape Coaches
             var elements = root.getElementsByTagName('tr');
@@ -185,7 +193,7 @@ class Scrape_Learfield {
                 }
             }
             
-            // this.create_player(team_id, player_list, base_url);
+            this.create_player(team_id, player_list, base_url);
             this.callback_coaches(coach_list);
         }
     }

@@ -371,11 +371,11 @@ app.get('/get_sports', function (req, res) {
 
 
 app.get('/execute_scrape', function(req, res) {
-    fs.readFile('./default_headshots.htmlx', function(err,data) {
-        fs.writeFile('./'+req.query.team_id+'.html', data, () => {
-            console.log('Done initializing '+req.query.team_id+'.html')
-        });
-    });
+    // fs.readFile('./default_headshots.htmlx', function(err,data) {
+    //     fs.writeFile('./'+req.query.team_id+'.html', data, () => {
+    //         console.log('Done initializing '+req.query.team_id+'.html')
+    //     });
+    // });
 
     var sl_obj = new sl.Scrape_Learfield(done_scraping_players, done_scraping_coaches);
     con.query(` SELECT Teams.dir_html, Sports.name, Teams.base_url
